@@ -11,11 +11,15 @@ namespace DecoratedUnitOfWork.Decoration
             where TDecorator : class, TService
             where TService : class
         {
-            services.AddScoped<TDecorated>();
-            using var sp = services.BuildServiceProvider();
 
             var parameters = typeof(TDecorator).GetConstructors()[0].GetParameters();
 
+            foreach (var parameter in parameters)
+            {
+                services.TryAddScoped(parameter.ParameterType);
+            }
+
+            using var sp = services.BuildServiceProvider();
             var constructorArgs = parameters.Select(x => sp.GetRequiredService(x.ParameterType)).ToArray();
 
             TDecorator a = (TDecorator)Activator.CreateInstance(typeof(TDecorator), constructorArgs)!;
